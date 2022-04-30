@@ -5,6 +5,11 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -20,6 +25,9 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
+  private XboxController controller;
+  private DifferentialDrive drive;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -29,6 +37,21 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+    // Initialize controller
+    controller = new XboxController(0);
+
+    // Initialize Motors
+    MotorController left_front = new Spark(0);
+    MotorController left_back = new Spark(1);
+    MotorController right_front = new Spark(2);
+    MotorController right_back = new Spark(3);
+    // Group each side
+    MotorControllerGroup left = new MotorControllerGroup(left_front, left_back);
+    MotorControllerGroup right = new MotorControllerGroup(right_front, right_back);
+    // Initialize drivetrain
+    drive = new DifferentialDrive(left, right);
+
   }
 
   /**
@@ -78,7 +101,19 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    // Get the joystick values
+    double left_speed = controller.getLeftY();
+    double right_speed = controller.getRightY();
+
+    // Set drivetrain speeds
+    drive.tankDrive(left_speed, right_speed);
+
+    // Update smart dashboard!
+    SmartDashboard.putNumber("Left Drive Speed", left_speed);
+    SmartDashboard.putNumber("Right Drive Speed", right_speed);
+
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override
